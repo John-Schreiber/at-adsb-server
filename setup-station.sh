@@ -212,6 +212,20 @@ read_value "  Stats interval in minutes [60]: "
 STATS_INTERVAL_M=${REPLY:-60}
 reject_line_breaks "$STATS_INTERVAL_M" "stats interval"
 
+# Stream endpoint (optional)
+printf '%s\n' ""
+printf '%s\n' "  Stream endpoint (STREAM_ENDPOINT)"
+printf '%s\n' "  If your station's WebSocket is publicly reachable, enter the URL"
+printf '%s\n' "  so relays can auto-discover your event stream."
+printf '%s\n' "  Example: wss://my-station.example.com/xrpc/at.adsb.broadcast.subscribeEvents"
+printf '%s\n' "  Leave empty if your station is not publicly accessible."
+printf '%s\n' "  See docs/HOSTING.md for reverse proxy setup (Caddy, Cloudflare Tunnel)."
+read_value "  Stream endpoint URL (optional, press Enter to skip): "
+STREAM_ENDPOINT=$REPLY
+if [ -n "$STREAM_ENDPOINT" ]; then
+  reject_line_breaks "$STREAM_ENDPOINT" "stream endpoint"
+fi
+
 # ---------------------------------------------------------------------------
 # Section 3: Station location (required — coordinates are public)
 # ---------------------------------------------------------------------------
@@ -264,6 +278,9 @@ write_env_line "BATCH_WINDOW_S" "$BATCH_WINDOW_S"
 write_env_line "STATS_INTERVAL_M" "$STATS_INTERVAL_M"
 write_env_line "QUEUE_DB_PATH" "/data/at-adsb-queue.db"
 write_env_line "POLL_INTERVAL_S" "$POLL_INTERVAL_S"
+if [ -n "$STREAM_ENDPOINT" ]; then
+  write_env_line "STREAM_ENDPOINT" "$STREAM_ENDPOINT"
+fi
 
 mv -f -- "$TEMP_ENV_FILE" "$ENV_FILE"
 TEMP_ENV_FILE=
@@ -275,14 +292,61 @@ register_args=(
   --lat "$RECEIVER_LAT"
   --lon "$RECEIVER_LON"
 )
+if [ -n "$STREAM_ENDPOINT" ]; then
+  register_args+=(--stream-endpoint "$STREAM_ENDPOINT")
+fi
 
 cd "$ROOT_DIR"
 if docker "${register_args[@]}"; then
   printf '%s\n' ""
   printf '%s\n' ".env was created at $ENV_FILE."
-  printf '%s\n' "Start the stack with: docker compose up -d"
 else
   status=$?
   printf '%s\n' 'Registration failed; .env remains available for retry.' >&2
   exit "$status"
 fi
+
+# ---------------------------------------------------------------------------
+# Section 4: Stream signing key (optional, recommended)
+# ---------------------------------------------------------------------------
+
+printf '%s\n' ""
+printf '%s\n' "=== Stream Signing ==="
+printf '%s\n' ""
+printf '%s\n' "  Stream signing cryptographically signs event stream frames with a"
+printf '%s\n' "  secp256k1 keypair. Consumers can verify that events came from your"
+printf '%s\n' "  station and were not tampered with. Recommended for all stations."
+read_value "  Generate a stream signing key now? [Y/n]: "
+case "$REPLY" in
+  n|N)
+    printf '%s\n' "  Skipped. You can generate one later with:"
+    printf '%s\n' "    docker compose run --rm daemon generate-stream-key"
+    ;;
+  *)
+    printf '%s\n' ""
+    printf '%s\n' "  Generating stream signing key..."
+    signing_output=$(docker compose run --rm daemon generate-stream-key 2>&1) || {
+      status=$?
+      printf '%s\n' "" >&2
+      printf '%s\n' "  Key generation failed (exit $status)." >&2
+      printf '%s\n' "  Registration succeeded and .env is ready." >&2
+      printf '%s\n' "  Retry key generation later with:" >&2
+      printf '%s\n' "    docker compose run --rm daemon generate-stream-key" >&2
+      printf '%s\n' "" >&2
+      printf '%s\n' "  Start the stack with: docker compose up -d" >&2
+      exit "$status"
+    }
+    signing_key_hex=$(printf '%s\n' "$signing_output" | sed -n 's/^  STREAM_SIGNING_KEY_HEX=//p')
+    if [ -n "$signing_key_hex" ]; then
+      printf 'STREAM_SIGNING_KEY_HEX="%s"\n' "$(escape_dotenv "$signing_key_hex")" >> "$ENV_FILE"
+      printf '%s\n' "  Stream signing key generated and added to .env."
+    else
+      printf '%s\n' "  Warning: could not parse signing key from command output." >&2
+      printf '%s\n' "  The public key was published to your station record." >&2
+      printf '%s\n' "  Add the private key to .env manually using the output above." >&2
+    fi
+    ;;
+esac
+
+printf '%s\n' ""
+printf '%s\n' "Start the stack with: docker compose up -d"
