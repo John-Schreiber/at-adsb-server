@@ -1,0 +1,60 @@
+{
+  "lexicon": 1,
+  "id": "at.adsb.aircraft.identity",
+  "description": "An aircraft identified by its ICAO 24-bit address. Stores static identity and registration information. Created on first sighting by a receiver.",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "description": "An aircraft identified by its ICAO 24-bit address.",
+      "record": {
+        "type": "object",
+        "required": ["icaoHex", "createdAt"],
+        "properties": {
+          "icaoHex": {
+            "type": "string",
+            "description": "ICAO 24-bit aircraft address in hexadecimal (e.g. 'A1B2C3').",
+            "minLength": 6,
+            "maxLength": 6
+          },
+          "registration": {
+            "type": "string",
+            "description": "Aircraft registration or tail number (e.g. 'N12345').",
+            "maxLength": 20
+          },
+          "icaoTypeDesignator": {
+            "type": "string",
+            "description": "ICAO aircraft type designator (e.g. 'B738', 'A320').",
+            "maxLength": 4
+          },
+          "typeName": {
+            "type": "string",
+            "description": "Human-readable aircraft type (e.g. 'Boeing 737-800').",
+            "maxGraphemes": 128,
+            "maxLength": 1280
+          },
+          "operator": {
+            "type": "string",
+            "description": "Aircraft operator name (e.g. 'United Airlines').",
+            "maxGraphemes": 128,
+            "maxLength": 1280
+          },
+          "operatorIcao": {
+            "type": "string",
+            "description": "ICAO airline/operator code (e.g. 'UAL').",
+            "maxLength": 3
+          },
+          "category": {
+            "type": "string",
+            "description": "ADS-B emitter category (e.g. 'A3' for large aircraft).",
+            "maxLength": 4
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}

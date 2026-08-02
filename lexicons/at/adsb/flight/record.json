@@ -1,0 +1,115 @@
+{
+  "lexicon": 1,
+  "id": "at.adsb.flight.record",
+  "description": "A receiver-authored record of an aircraft's transit through the receiver's coverage area. Created on departure. References all contributing batch sightings and the aircraft identity via strongRef for provenance verification.",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "description": "A receiver's record of one aircraft's complete observed flight.",
+      "record": {
+        "type": "object",
+        "required": [
+          "aircraft",
+          "firstSeen",
+          "lastSeen",
+          "batches",
+          "createdAt"
+        ],
+        "properties": {
+          "aircraft": {
+            "type": "ref",
+            "ref": "com.atproto.repo.strongRef",
+            "description": "Strong reference to the at.adsb.aircraft.identity record for this aircraft."
+          },
+          "callsign": {
+            "type": "string",
+            "description": "Flight callsign as broadcast (e.g. 'UAL123').",
+            "maxLength": 8
+          },
+          "firstSeen": {
+            "type": "string",
+            "format": "datetime",
+            "description": "When this receiver first detected the aircraft."
+          },
+          "lastSeen": {
+            "type": "string",
+            "format": "datetime",
+            "description": "When this receiver last detected the aircraft."
+          },
+          "positionCount": {
+            "type": "integer",
+            "description": "Number of position reports received by this receiver.",
+            "minimum": 0
+          },
+          "messageCount": {
+            "type": "integer",
+            "description": "Total messages received from this aircraft by this receiver.",
+            "minimum": 0
+          },
+          "batches": {
+            "type": "array",
+            "description": "Strong references to all at.adsb.receiver.sighting batch records where this aircraft appeared.",
+            "items": {
+              "type": "ref",
+              "ref": "com.atproto.repo.strongRef"
+            },
+            "minLength": 1,
+            "maxLength": 5760
+          },
+          "initialAltitudeFt": {
+            "type": "integer",
+            "description": "Barometric altitude in feet at first detection."
+          },
+          "initialHeadingDeg": {
+            "type": "string",
+            "description": "Ground track in degrees at first detection.",
+            "maxLength": 10
+          },
+          "initialGroundSpeedKts": {
+            "type": "string",
+            "description": "Ground speed in knots at first detection.",
+            "maxLength": 10
+          },
+          "initialVerticalRateFpm": {
+            "type": "integer",
+            "description": "Vertical rate in feet per minute at first detection. Negative is descending."
+          },
+          "finalAltitudeFt": {
+            "type": "integer",
+            "description": "Barometric altitude in feet at last detection."
+          },
+          "finalHeadingDeg": {
+            "type": "string",
+            "description": "Ground track in degrees at last detection.",
+            "maxLength": 10
+          },
+          "finalGroundSpeedKts": {
+            "type": "string",
+            "description": "Ground speed in knots at last detection.",
+            "maxLength": 10
+          },
+          "finalVerticalRateFpm": {
+            "type": "integer",
+            "description": "Vertical rate in feet per minute at last detection. Negative is descending."
+          },
+          "maxRangeNm": {
+            "type": "string",
+            "description": "Furthest distance to this aircraft during the sighting, in nautical miles.",
+            "maxLength": 20
+          },
+          "squawk": {
+            "type": "string",
+            "description": "Transponder squawk code (e.g. '2636').",
+            "minLength": 4,
+            "maxLength": 4
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}

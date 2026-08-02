@@ -1,0 +1,77 @@
+{
+  "lexicon": 1,
+  "id": "at.adsb.receiver.sighting",
+  "description": "A batch of aircraft observations from a single receiver covering a configurable time window (default 60 seconds). Contains a manifest of observed aircraft and blobbed telemetry data.",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "description": "A receiver's batch sighting covering a configurable observation window.",
+      "record": {
+        "type": "object",
+        "required": ["windowStart", "windowEnd", "manifest", "telemetry", "sources", "createdAt"],
+        "properties": {
+          "windowStart": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Start of the observation window (inclusive)."
+          },
+          "windowEnd": {
+            "type": "string",
+            "format": "datetime",
+            "description": "End of the observation window (exclusive)."
+          },
+          "manifest": {
+            "type": "array",
+            "description": "Lightweight list of all aircraft observed in this window.",
+            "items": {
+              "type": "ref",
+              "ref": "#manifestEntry"
+            },
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "telemetry": {
+            "type": "blob",
+            "description": "Zstd-compressed JSON object keyed by ICAO hex, values are arrays of at.adsb.flight.defs#position objects.",
+            "accept": ["application/zstd"],
+            "maxSize": 2000000
+          },
+          "sources": {
+            "type": "array",
+            "description": "Deduplicated list of decoder source types that contributed position fixes in this batch window.",
+            "items": {
+              "type": "string",
+              "maxLength": 32
+            },
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "rawCapture": {
+            "type": "blob",
+            "description": "Raw demodulated SDR frames captured during this window, in ATRX envelope format. Optional — strengthens provenance but not required.",
+            "accept": ["application/vnd.at-adsb.raw-capture+zstd"],
+            "maxSize": 2000000
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    },
+    "manifestEntry": {
+      "type": "object",
+      "description": "An aircraft observed in this batch window.",
+      "required": ["icaoHex"],
+      "properties": {
+        "icaoHex": {
+          "type": "string",
+          "description": "ICAO 24-bit hex address (uppercased).",
+          "minLength": 6,
+          "maxLength": 6
+        }
+      }
+    }
+  }
+}

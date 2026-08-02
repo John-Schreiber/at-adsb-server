@@ -1,0 +1,25 @@
+# Dependencies and build output
+node_modules/
+dist/
+
+# Environment files with credentials
+.env
+
+# Local databases
+*.db
+*.db-wal
+*.db-shm
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.cursor/
+
+# OS files
+.DS_Store
+Thumbs.db

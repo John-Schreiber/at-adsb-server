@@ -1,0 +1,46 @@
+{
+  "lexicon": 1,
+  "id": "at.adsb.version.info",
+  "description": "Version information for a lexicon in the at.adsb namespace. Published by the namespace authority to the network so consumers can discover the current schema version and its history.",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "description": "Version info for a single lexicon.",
+      "record": {
+        "type": "object",
+        "required": [
+          "nsid",
+          "revision",
+          "changelog",
+          "createdAt"
+        ],
+        "properties": {
+          "nsid": {
+            "type": "string",
+            "description": "The NSID of the lexicon this version info applies to (e.g. 'at.adsb.receiver.station').",
+            "maxLength": 256
+          },
+          "revision": {
+            "type": "ref",
+            "ref": "at.adsb.version.defs#revision",
+            "description": "Current version of the lexicon."
+          },
+          "changelog": {
+            "type": "array",
+            "description": "History of changes, most recent first.",
+            "items": {
+              "type": "ref",
+              "ref": "at.adsb.version.defs#changelogEntry"
+            },
+            "maxLength": 100
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}

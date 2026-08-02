@@ -1,0 +1,144 @@
+{
+  "lexicon": 1,
+  "id": "at.adsb.sync.subscribeEvents",
+  "description": "Unified relay output stream aggregating aircraft telemetry from multiple at-adsb receiver stations. Re-sequences all station telemetry under a single monotonic cursor with backfill support.",
+  "defs": {
+    "main": {
+      "type": "subscription",
+      "description": "Subscribe to relayed events from all stations tracked by this relay.",
+      "parameters": {
+        "type": "params",
+        "properties": {
+          "cursor": {
+            "type": "integer",
+            "description": "The last sequence number previously received. If provided, the stream will backfill from that point."
+          }
+        }
+      },
+      "message": {
+        "schema": {
+          "type": "union",
+          "refs": ["#event", "#station", "#info"]
+        }
+      },
+      "errors": [
+        {
+          "name": "FutureCursor",
+          "description": "The requested cursor is in the future (beyond the relay's current head sequence)."
+        },
+        {
+          "name": "ConsumerTooSlow",
+          "description": "The consumer's read rate is too far behind the relay's write rate. The connection has been dropped."
+        }
+      ]
+    },
+    "event": {
+      "type": "object",
+      "description": "A relayed batch of operations from a single station's poll cycle.",
+      "required": ["seq", "src", "upstreamSeq", "station", "time", "ops"],
+      "properties": {
+        "seq": {
+          "type": "integer",
+          "description": "The relay-minted monotonic sequence number of this message."
+        },
+        "src": {
+          "type": "string",
+          "format": "did",
+          "description": "The DID of the originating station."
+        },
+        "upstreamSeq": {
+          "type": "integer",
+          "description": "The station's original sequence number from the upstream broadcast stream. Note: station seq resets on process restart; consumers should detect regression."
+        },
+        "station": {
+          "type": "ref",
+          "ref": "com.atproto.repo.strongRef",
+          "description": "Strong reference to the emitting station's at.adsb.receiver.station record."
+        },
+        "time": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp from the upstream station's poll cycle."
+        },
+        "ops": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "#broadcastOp"
+          },
+          "description": "List of operations in this batch, passed through from upstream."
+        },
+        "sig": {
+          "type": "bytes",
+          "description": "Pass-through signature from the upstream station. This signature was computed by the station over the DAG-CBOR encoding of the upstream event body {$type: 'at.adsb.broadcast.subscribeEvents#event', seq, station, time, ops} (where seq is the station's original sequence, present here as upstreamSeq). To verify, reconstruct the upstream body by mapping upstreamSeq back to seq and including $type: 'at.adsb.broadcast.subscribeEvents#event' (dropping src), then check the signature against the station's published streamSigningKey. The signature does NOT verify against this sync frame body."
+        }
+      }
+    },
+    "broadcastOp": {
+      "type": "object",
+      "description": "A single operation within a relayed event. This definition MUST track at.adsb.broadcast.subscribeEvents#broadcastOp — if the upstream broadcast lexicon changes this shape, update this definition to match.",
+      "required": ["action", "record"],
+      "properties": {
+        "action": {
+          "type": "string",
+          "knownValues": ["create", "update", "delete"],
+          "maxLength": 16,
+          "description": "The type of operation."
+        },
+        "record": {
+          "type": "unknown",
+          "description": "The record payload. Shape determined by the record's $type field."
+        }
+      }
+    },
+    "station": {
+      "type": "object",
+      "description": "A station registry change observed by the relay via the AT Protocol firehose.",
+      "required": ["seq", "src", "op", "time"],
+      "properties": {
+        "seq": {
+          "type": "integer",
+          "description": "The relay-minted monotonic sequence number of this message."
+        },
+        "src": {
+          "type": "string",
+          "format": "did",
+          "description": "The DID of the station whose record changed."
+        },
+        "op": {
+          "type": "string",
+          "knownValues": ["create", "update", "delete"],
+          "maxLength": 16,
+          "description": "The type of registry change."
+        },
+        "time": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp of when the relay observed the firehose event."
+        },
+        "record": {
+          "type": "unknown",
+          "description": "The full station record. Present for create and update ops; absent for delete ops. When present, shape matches at.adsb.receiver.station record definition."
+        }
+      }
+    },
+    "info": {
+      "type": "object",
+      "description": "Control frame generated by the relay (e.g., OutdatedCursor). Upstream #info frames are not relayed.",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "knownValues": ["OutdatedCursor"],
+          "maxLength": 64,
+          "description": "Operational info message name."
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 1024,
+          "description": "Human-readable info message."
+        }
+      }
+    }
+  }
+}

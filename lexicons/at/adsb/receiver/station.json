@@ -1,0 +1,121 @@
+{
+  "lexicon": 1,
+  "id": "at.adsb.receiver.station",
+  "description": "A declaration of an ADS-B receiver station. One per account, representing a physical receiver contributing aircraft surveillance data to the network.",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "literal:self",
+      "description": "A declaration of an ADS-B receiver station.",
+      "record": {
+        "type": "object",
+        "required": ["displayName", "location", "status", "createdAt"],
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "Human-readable name for the station.",
+            "maxGraphemes": 64,
+            "maxLength": 640
+          },
+          "description": {
+            "type": "string",
+            "description": "Free-form description of the station, its setup, or coverage area.",
+            "maxGraphemes": 256,
+            "maxLength": 2560
+          },
+          "location": {
+            "type": "ref",
+            "ref": "community.lexicon.location.geo",
+            "description": "Approximate geographic position of the receiver. For privacy, coordinates should be rounded to 2 decimal places (~1 km precision). MLAT services requiring precise positions should handle that out-of-band unless comfortable with precise coordinates."
+          },
+          "hardware": {
+            "type": "ref",
+            "ref": "#hardwareInfo"
+          },
+          "coverageRadiusNm": {
+            "type": "integer",
+            "description": "Estimated reception range in nautical miles.",
+            "minimum": 0,
+            "maximum": 500
+          },
+          "status": {
+            "type": "string",
+            "description": "Current operational status of the station.",
+            "maxLength": 256,
+            "knownValues": [
+              "at.adsb.receiver.station#active",
+              "at.adsb.receiver.station#inactive",
+              "at.adsb.receiver.station#maintenance"
+            ]
+          },
+          "protocols": {
+            "type": "array",
+            "description": "Data protocols this station receives.",
+            "items": {
+              "type": "string",
+              "maxLength": 256,
+              "knownValues": [
+                "at.adsb.receiver.station#adsb",
+                "at.adsb.receiver.station#mlat",
+                "at.adsb.receiver.station#uat",
+                "at.adsb.receiver.station#acars",
+                "at.adsb.receiver.station#vdl2",
+                "at.adsb.receiver.station#hfdl"
+              ]
+            },
+            "maxLength": 10
+          },
+          "website": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to the station's public stats page or dashboard."
+          },
+          "streamEndpoint": {
+            "type": "string",
+            "format": "uri",
+            "description": "WebSocket URL for this station's at.adsb.broadcast.subscribeEvents endpoint (e.g. 'wss://station.example.com/xrpc/at.adsb.broadcast.subscribeEvents'). Enables automatic discovery by relays."
+          },
+          "avatar": {
+            "type": "blob",
+            "description": "Photo of the receiver setup or antenna.",
+            "accept": ["image/png", "image/jpeg"],
+            "maxSize": 1000000
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "streamSigningKey": {
+            "type": "string",
+            "format": "did",
+            "description": "did:key-encoded secp256k1 public key for verifying event stream frame signatures."
+          }
+        }
+      }
+    },
+    "hardwareInfo": {
+      "type": "object",
+      "description": "Receiver hardware and software details.",
+      "properties": {
+        "receiver": {
+          "type": "string",
+          "description": "Receiver type or model (e.g. 'RTL-SDR V4', 'Airspy Mini').",
+          "maxGraphemes": 64,
+          "maxLength": 640
+        },
+        "antenna": {
+          "type": "string",
+          "description": "Antenna type or model.",
+          "maxGraphemes": 64,
+          "maxLength": 640
+        },
+        "software": {
+          "type": "string",
+          "description": "Decoder software in use (e.g. 'readsb', 'dump1090-fa').",
+          "maxGraphemes": 64,
+          "maxLength": 640
+        }
+      }
+    }
+  }
+}

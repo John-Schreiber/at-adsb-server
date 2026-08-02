@@ -1,0 +1,76 @@
+{
+  "lexicon": 1,
+  "id": "at.adsb.broadcast.message",
+  "description": "A real-time aircraft state update, broadcast via at.adsb.broadcast.subscribeEvents. Ephemeral — not written to a PDS.",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Current state of a tracked aircraft as observed by a single receiver.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["icaoHex", "rssi", "seen"],
+        "properties": {
+          "icaoHex": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 6,
+            "description": "ICAO 24-bit hex address (uppercased)."
+          },
+          "callsign": {
+            "type": "string",
+            "description": "Flight callsign as broadcast (e.g. 'UAL123').",
+            "maxLength": 8
+          },
+          "aircraft": {
+            "type": "ref",
+            "ref": "com.atproto.repo.strongRef",
+            "description": "Strong reference to the at.adsb.aircraft.identity record for this aircraft."
+          },
+          "squawk": {
+            "type": "string",
+            "description": "Transponder squawk code (e.g. '2636').",
+            "minLength": 4,
+            "maxLength": 4
+          },
+          "position": {
+            "type": "ref",
+            "ref": "at.adsb.flight.defs#position",
+            "description": "Most recent position fix for this aircraft."
+          },
+          "nic": {
+            "type": "integer",
+            "description": "Navigation Integrity Category (0-11). Higher is more precise.",
+            "minimum": 0,
+            "maximum": 11
+          },
+          "rc": {
+            "type": "integer",
+            "description": "Radius of containment in metres. Derived from NIC.",
+            "minimum": 0
+          },
+          "rssi": {
+            "type": "string",
+            "description": "Received signal strength indicator in dBFS.",
+            "maxLength": 10
+          },
+          "seen": {
+            "type": "string",
+            "description": "Seconds since last message from this aircraft.",
+            "maxLength": 10
+          },
+          "seenPos": {
+            "type": "string",
+            "description": "Seconds since last position fix from this aircraft.",
+            "maxLength": 10
+          },
+          "messageCount": {
+            "type": "integer",
+            "description": "Total messages received from this aircraft in the current tracking session.",
+            "minimum": 0
+          }
+        }
+      }
+    }
+  }
+}

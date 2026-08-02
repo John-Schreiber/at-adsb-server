@@ -1,0 +1,127 @@
+{
+  "lexicon": 1,
+  "id": "at.adsb.flight.defs",
+  "description": "Shared type definitions for flight-related records in the at.adsb namespace.",
+  "defs": {
+    "contributor": {
+      "type": "object",
+      "description": "A receiver that contributed data to a flight sighting.",
+      "required": ["did"],
+      "properties": {
+        "did": {
+          "type": "string",
+          "format": "did",
+          "description": "DID of the contributing receiver account."
+        },
+        "station": {
+          "type": "ref",
+          "ref": "com.atproto.repo.strongRef",
+          "description": "Strong reference to the contributor's at.adsb.receiver.station record."
+        },
+        "sighting": {
+          "type": "ref",
+          "ref": "com.atproto.repo.strongRef",
+          "description": "Strong reference to the contributor's at.adsb.receiver.sighting record for this aircraft."
+        },
+        "positionCount": {
+          "type": "integer",
+          "description": "Number of position reports this receiver contributed.",
+          "minimum": 0
+        },
+        "firstSeen": {
+          "type": "string",
+          "format": "datetime",
+          "description": "When this receiver first observed the aircraft."
+        },
+        "lastSeen": {
+          "type": "string",
+          "format": "datetime",
+          "description": "When this receiver last observed the aircraft."
+        }
+      }
+    },
+    "position": {
+      "type": "object",
+      "description": "A single aircraft position report. Coordinates follow community.lexicon.location conventions: decimal degree strings, WGS84.",
+      "required": ["latitude", "longitude", "timestamp", "source"],
+      "properties": {
+        "latitude": {
+          "type": "string",
+          "description": "Decimal degrees north, WGS84. Negative for south.",
+          "maxLength": 20
+        },
+        "longitude": {
+          "type": "string",
+          "description": "Decimal degrees east, WGS84. Negative for west.",
+          "maxLength": 20
+        },
+        "altitudeFt": {
+          "type": "integer",
+          "description": "Barometric altitude in feet."
+        },
+        "groundSpeedKts": {
+          "type": "string",
+          "description": "Ground speed in knots.",
+          "maxLength": 20
+        },
+        "trackDeg": {
+          "type": "string",
+          "description": "Track angle in degrees true north.",
+          "maxLength": 20
+        },
+        "verticalRateFpm": {
+          "type": "integer",
+          "description": "Vertical rate in feet per minute. Negative is descending."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "source": {
+          "type": "string",
+          "description": "Decoder-level source type that produced this position fix.",
+          "maxLength": 32,
+          "knownValues": [
+            "adsb_icao",
+            "adsb_icao_nt",
+            "adsr_icao",
+            "tisb_icao",
+            "adsc",
+            "mlat",
+            "uat",
+            "mode_s",
+            "adsb_other",
+            "tisb_other"
+          ]
+        }
+      }
+    },
+    "trackSummary": {
+      "type": "object",
+      "description": "Summary of a flight's path without the full position history. Coordinates follow community.lexicon.location conventions.",
+      "properties": {
+        "origin": {
+          "type": "ref",
+          "ref": "community.lexicon.location.geo",
+          "description": "First observed position."
+        },
+        "destination": {
+          "type": "ref",
+          "ref": "community.lexicon.location.geo",
+          "description": "Last observed position."
+        },
+        "minAltitudeFt": {
+          "type": "integer"
+        },
+        "maxAltitudeFt": {
+          "type": "integer"
+        },
+        "distanceNm": {
+          "type": "string",
+          "description": "Great-circle distance between first and last observed positions, in nautical miles.",
+          "maxLength": 20
+        }
+      }
+    }
+  }
+}

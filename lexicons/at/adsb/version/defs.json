@@ -1,0 +1,52 @@
+{
+  "lexicon": 1,
+  "id": "at.adsb.version.defs",
+  "description": "Shared type definitions for lexicon versioning. Provides a reusable convention for tracking schema revisions and changelogs.",
+  "defs": {
+    "revision": {
+      "type": "object",
+      "description": "Current version of a lexicon schema, following semver conventions.",
+      "required": ["major", "minor", "patch"],
+      "properties": {
+        "major": {
+          "type": "integer",
+          "description": "Breaking changes or new NSID required.",
+          "minimum": 0
+        },
+        "minor": {
+          "type": "integer",
+          "description": "New optional fields or non-breaking additions.",
+          "minimum": 0
+        },
+        "patch": {
+          "type": "integer",
+          "description": "Documentation, description, or metadata changes only.",
+          "minimum": 0
+        }
+      }
+    },
+    "changelogEntry": {
+      "type": "object",
+      "description": "A single entry in a lexicon's changelog.",
+      "required": ["version", "date", "description"],
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "Semver version string (e.g. '0.1.0').",
+          "maxLength": 20
+        },
+        "date": {
+          "type": "string",
+          "description": "Date of the change (YYYY-MM-DD).",
+          "maxLength": 10
+        },
+        "description": {
+          "type": "string",
+          "description": "Summary of changes in this version.",
+          "maxGraphemes": 256,
+          "maxLength": 2560
+        }
+      }
+    }
+  }
+}

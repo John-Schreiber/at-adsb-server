@@ -1,0 +1,55 @@
+services:
+  daemon:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    command: ["run", "--socket-path", "/run/at-adsb/daemon.sock", "--atrx-temp-dir", "/tmp/at-adsb-atrx"]
+    env_file: .env
+    ports:
+      - "${WS_PORT:-4100}:4100"
+    volumes:
+      - socket:/run/at-adsb
+      - atrx-tmp:/tmp/at-adsb-atrx
+      - queue-data:/data
+    restart: unless-stopped
+
+  adapter-readsb:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    command:
+      - "adapter"
+      - "readsb"
+      - "--socket"
+      - "/run/at-adsb/daemon.sock"
+      - "--url"
+      - "${READSB_URL:-http://host.docker.internal:8080}"
+      - "--source-id"
+      - "readsb-1090"
+      - "--poll-interval"
+      - "${POLL_INTERVAL_S:-5}"
+      - "--batch-window"
+      - "${BATCH_WINDOW_S:-60}"
+      - "--atrx-temp-dir"
+      - "/tmp/at-adsb-atrx"
+      # Uncomment to enable raw BEAST frame capture:
+      # - "--beast-host"
+      # - "${BEAST_HOST:-host.docker.internal}"
+      # - "--beast-port"
+      # - "${BEAST_PORT:-30005}"
+    env_file: .env
+    volumes:
+      - socket:/run/at-adsb
+      - atrx-tmp:/tmp/at-adsb-atrx
+    depends_on:
+      - daemon
+    restart: unless-stopped
+
+  # To add another adapter (e.g., dump978 UAT), duplicate the adapter-readsb
+  # service with a different name, --source-id, and --url pointing to the
+  # second decoder.
+
+volumes:
+  socket:
+  atrx-tmp:
+  queue-data:

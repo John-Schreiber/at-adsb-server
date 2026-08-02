@@ -1,0 +1,205 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "readsb aircraft.json",
+  "description": "Schema for readsb aircraft.json endpoint. Based on readsb v3.14.1641.",
+  "type": "object",
+  "required": ["now", "messages", "aircraft"],
+  "properties": {
+    "now": {
+      "type": "number",
+      "description": "Current epoch timestamp (seconds, with fractional)."
+    },
+    "messages": {
+      "type": "integer",
+      "description": "Total messages received since readsb started."
+    },
+    "aircraft": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/aircraft" }
+    }
+  },
+  "$defs": {
+    "aircraft": {
+      "type": "object",
+      "required": ["hex", "seen", "rssi", "messages"],
+      "properties": {
+        "hex": {
+          "type": "string",
+          "description": "ICAO 24-bit address in lowercase hexadecimal."
+        },
+        "type": {
+          "type": "string",
+          "description": "Source type.",
+          "enum": ["adsb_icao", "adsb_icao_nt", "adsr_icao", "tisb_icao", "adsc", "mlat", "other", "mode_s", "adsb_other", "adsr_other", "tisb_trackfile", "tisb_other", "mode_ac", "unknown"]
+        },
+        "flight": {
+          "type": "string",
+          "description": "Callsign (may be space-padded)."
+        },
+        "alt_baro": {
+          "type": "integer",
+          "description": "Barometric altitude in feet."
+        },
+        "alt_geom": {
+          "type": "integer",
+          "description": "Geometric (GNSS) altitude in feet."
+        },
+        "gs": {
+          "type": "number",
+          "description": "Ground speed in knots."
+        },
+        "track": {
+          "type": "number",
+          "description": "Track angle in degrees (true north)."
+        },
+        "baro_rate": {
+          "type": "integer",
+          "description": "Barometric vertical rate in feet per minute."
+        },
+        "squawk": {
+          "type": "string",
+          "description": "Transponder squawk code (4-digit octal)."
+        },
+        "emergency": {
+          "type": "string",
+          "description": "Emergency status.",
+          "enum": ["none", "general", "lifeguard", "minfuel", "nordo", "unlawful", "downed", "reserved"]
+        },
+        "category": {
+          "type": "string",
+          "description": "Aircraft category (e.g. A1-A7 for fixed wing by weight, B1-B7 for rotorcraft, etc.)."
+        },
+        "nav_qnh": {
+          "type": "number",
+          "description": "Altimeter QNH setting in millibars."
+        },
+        "nav_altitude_mcp": {
+          "type": "integer",
+          "description": "MCP/FCU selected altitude in feet."
+        },
+        "nav_heading": {
+          "type": "number",
+          "description": "Selected heading in degrees."
+        },
+        "nav_modes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Active navigation modes (e.g. althold, tcas, vnav, lnav, approach)."
+        },
+        "lat": {
+          "type": "number",
+          "description": "Current latitude. Absent if no recent position fix."
+        },
+        "lon": {
+          "type": "number",
+          "description": "Current longitude. Absent if no recent position fix."
+        },
+        "nic": {
+          "type": "integer",
+          "description": "Navigation Integrity Category."
+        },
+        "rc": {
+          "type": "integer",
+          "description": "Containment radius in metres."
+        },
+        "seen_pos": {
+          "type": "number",
+          "description": "Seconds since last position report."
+        },
+        "version": {
+          "type": "integer",
+          "description": "ADS-B version (0, 1, or 2)."
+        },
+        "nic_baro": {
+          "type": "integer",
+          "description": "Barometric altitude integrity."
+        },
+        "nac_p": {
+          "type": "integer",
+          "description": "Navigation Accuracy Category for Position."
+        },
+        "nac_v": {
+          "type": "integer",
+          "description": "Navigation Accuracy Category for Velocity."
+        },
+        "sil": {
+          "type": "integer",
+          "description": "Source Integrity Level."
+        },
+        "sil_type": {
+          "type": "string",
+          "description": "SIL supplement type.",
+          "enum": ["perhour", "persample", "unknown"]
+        },
+        "gva": {
+          "type": "integer",
+          "description": "Geometric Vertical Accuracy."
+        },
+        "sda": {
+          "type": "integer",
+          "description": "System Design Assurance level."
+        },
+        "alert": {
+          "type": "integer",
+          "description": "Alert flag (0 or 1)."
+        },
+        "spi": {
+          "type": "integer",
+          "description": "Special Position Identification flag (0 or 1)."
+        },
+        "mlat": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of fields derived from MLAT."
+        },
+        "tisb": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of fields derived from TIS-B."
+        },
+        "messages": {
+          "type": "integer",
+          "description": "Total messages received from this aircraft."
+        },
+        "seen": {
+          "type": "number",
+          "description": "Seconds since any message from this aircraft."
+        },
+        "rssi": {
+          "type": "number",
+          "description": "Signal strength in dBFS."
+        },
+        "lastPosition": {
+          "$ref": "#/$defs/lastPosition"
+        }
+      }
+    },
+    "lastPosition": {
+      "type": "object",
+      "description": "Stale position data. Present when aircraft has been seen but lat/lon fields are absent (position too old for current display).",
+      "required": ["lat", "lon", "nic", "rc", "seen_pos"],
+      "properties": {
+        "lat": {
+          "type": "number",
+          "description": "Last known latitude."
+        },
+        "lon": {
+          "type": "number",
+          "description": "Last known longitude."
+        },
+        "nic": {
+          "type": "integer",
+          "description": "NIC at the time of this position."
+        },
+        "rc": {
+          "type": "integer",
+          "description": "Containment radius in metres."
+        },
+        "seen_pos": {
+          "type": "number",
+          "description": "Seconds since this position was received."
+        }
+      }
+    }
+  }
+}
