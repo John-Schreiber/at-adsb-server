@@ -15,6 +15,7 @@ Each receiver is a first-class AT Protocol identity with its own DID, making con
 - An Atmosphere account (e.g., a Bluesky account) and an [app password](https://bsky.app/settings/app-passwords)
 - A running [readsb](https://github.com/wiedehopf/readsb) instance (or compatible decoder exposing an HTTP aircraft API)
 - Docker with Compose
+- A domain name (or subdomain) with a DNS A/AAAA record pointing to your server's public IP address. We recommend using [Caddy](https://caddyserver.com/) to reverse proxy your IP address (see below). We will work on a simplified approach. Unfortunately, to get realtime data, we need to emit events more frequently than we can write to the PDS.
 
 ### Setup
 
