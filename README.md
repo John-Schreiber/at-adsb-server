@@ -12,7 +12,7 @@ Each receiver is a first-class AT Protocol identity with its own DID, making con
 
 ### Prerequisites
 
-- An AT Protocol account (e.g., a Bluesky account) and an [app password](https://bsky.app/settings/app-passwords)
+- An Atmosphere account (e.g., a Bluesky account) and an [app password](https://bsky.app/settings/app-passwords)
 - A running [readsb](https://github.com/wiedehopf/readsb) instance (or compatible decoder exposing an HTTP aircraft API)
 - Docker with Compose
 
