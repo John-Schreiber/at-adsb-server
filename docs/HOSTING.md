@@ -2,7 +2,7 @@
 
 at-adsb runs as two processes: a **daemon** that publishes to the AT Protocol network, and one or more **adapters** that feed aircraft data into it. They communicate over a Unix domain socket.
 
-This guide covers Docker Compose and Kubernetes (k3s) deployments. Both assume you already have a decoder like [readsb](https://github.com/wiedehopf/readsb) running somewhere accessible over HTTP.
+This guide covers Docker Compose and Kubernetes (k3s) deployments. Both assume you already have a decoder like [readsb](https://github.com/wiedehopf/readsb) running somewhere accessible over HTTP. If you don't, [`docker-compose.full.yml`](../docker-compose.full.yml) builds readsb from source alongside the daemon instead — see that file's header comment.
 
 ## Prerequisites
 
@@ -174,6 +174,8 @@ If you can't open ports 80/443 (e.g., shared network, restrictive ISP), [Cloudfl
 2. Create a tunnel pointing `adsb.yourdomain.com` to `http://localhost:4100`.
 3. Set `STREAM_ENDPOINT` to `wss://adsb.yourdomain.com/xrpc/at.adsb.broadcast.subscribeEvents`.
 4. Restart the daemon.
+
+If you're using [`docker-compose.full.yml`](../docker-compose.full.yml), skip installing `cloudflared` on the host — it has a commented-out `cloudflared` service that runs the tunnel in the same compose project instead, pointed at `http://daemon:4100`. Create the tunnel and public hostname in the Cloudflare Zero Trust dashboard, put the tunnel token in `.env` as `CLOUDFLARE_TUNNEL_TOKEN`, then uncomment that service.
 
 ### Verify it works
 

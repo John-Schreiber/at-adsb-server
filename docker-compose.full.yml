@@ -1,10 +1,16 @@
 # Full stack: builds wiedehopf/readsb from source alongside this daemon, so
-# `docker compose -f docker-compose.full.yml up -d` goes from a USB RTL-SDR
-# dongle to published AT Protocol sightings with no separately-managed readsb
-# install.
+# this file goes from a USB RTL-SDR dongle to published AT Protocol sightings
+# with no separately-managed readsb install.
 #
-# Prerequisite: clone readsb as a sibling directory of this repo first:
-#   git clone https://github.com/wiedehopf/readsb.git ../readsb
+# Prerequisites:
+#   1. Clone readsb as a sibling directory of this repo:
+#        git clone https://github.com/wiedehopf/readsb.git ../readsb
+#   2. Copy .env.example to .env and fill in your AT Protocol credentials.
+#   3. Register your station before starting the stack — the daemon exits
+#      immediately if no station record exists yet:
+#        docker compose -f docker-compose.full.yml run --rm --build daemon register \
+#          --name "Home receiver" --lat 38.8977 --lon -77.0365
+#   4. docker compose -f docker-compose.full.yml up -d
 #
 # For a readsb instance you already run yourself, use docker-compose.yml
 # instead and point READSB_URL at it. (This file intentionally does not read
