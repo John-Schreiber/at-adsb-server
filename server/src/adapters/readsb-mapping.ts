@@ -3,10 +3,13 @@
 import type { ReadsbAircraft, ReadsbStats } from "../readsb.js";
 import type { NormalizedAircraft, StatsMessage } from "../normalized.js";
 
-export function mapReadsbToNormalized(ac: ReadsbAircraft): NormalizedAircraft {
+export function mapReadsbToNormalized(
+  ac: ReadsbAircraft,
+  sourceOverride?: string,
+): NormalizedAircraft {
   return {
     icaoHex: ac.hex.toUpperCase(),
-    source: ac.type ?? "mode_s",
+    source: sourceOverride ?? ac.type ?? "mode_s",
     seen: ac.seen,
     rssi: ac.rssi,
     messages: ac.messages,

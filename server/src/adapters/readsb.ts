@@ -29,6 +29,7 @@ export type ReadsbAdapterConfig = {
   readonly socketPath: string;
   readonly readsbUrl: string;
   readonly sourceId: string;
+  readonly sourceOverride?: string;
   readonly pollIntervalS: number;
   readonly beastHost?: string;
   readonly beastPort?: number;
@@ -157,7 +158,9 @@ export class ReadsbAdapterClient {
 
   private async pollOnce(): Promise<void> {
     const data = await fetchAircraft(this.config.readsbUrl);
-    const aircraft = data.aircraft.map((ac) => mapReadsbToNormalized(ac));
+    const aircraft = data.aircraft.map((ac) =>
+      mapReadsbToNormalized(ac, this.config.sourceOverride),
+    );
 
     const message: AircraftMessage = {
       type: "aircraft",

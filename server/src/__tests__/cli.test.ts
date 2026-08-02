@@ -156,6 +156,11 @@ describe("multi-input-adapters.AC9.2 — adapter subcommands (re-grouped)", () =
       expect(helpOutput).toContain("--source-id");
     });
 
+    it("adapter readsb accepts --source-override flag", async () => {
+      const helpOutput = await execHelp(["adapter", "readsb"]);
+      expect(helpOutput).toContain("--source-override");
+    });
+
     it("adapter readsb accepts --beast-host flag", async () => {
       const helpOutput = await execHelp(["adapter", "readsb"]);
       expect(helpOutput).toContain("--beast-host");
