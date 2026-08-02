@@ -301,7 +301,7 @@ adapter
       socketPath: opts.socket ?? process.env["SOCKET_PATH"] ?? "/tmp/at-adsb.sock",
       readsbUrl: opts.url ?? process.env["READSB_URL"] ?? "http://localhost:8080",
       sourceId: opts.sourceId ?? process.env["SOURCE_ID"] ?? "readsb-1090",
-      sourceOverride: opts.sourceOverride ?? process.env["SOURCE_OVERRIDE"] ?? undefined,
+      sourceOverride: opts.sourceOverride?.trim() || process.env["SOURCE_OVERRIDE"]?.trim() || undefined,
       pollIntervalS: opts.pollInterval ?? parseInt(process.env["POLL_INTERVAL_S"] ?? "1", 10),
       beastHost: opts.beastHost ?? process.env["BEAST_HOST"] ?? undefined,
       beastPort: opts.beastPort ?? (process.env["BEAST_PORT"] ? parseInt(process.env["BEAST_PORT"], 10) : undefined),
