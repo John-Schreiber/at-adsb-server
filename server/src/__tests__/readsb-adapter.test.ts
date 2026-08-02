@@ -109,6 +109,49 @@ describe("multi-input-adapters.AC8.1 — readsb type mapping", () => {
     });
   });
 
+  describe("sourceOverride forces the source tag regardless of the poll target's own type field", () => {
+    it("uses sourceOverride instead of type when both are present", () => {
+      const aircraft: ReadsbAircraft = {
+        hex: "a1b2c3",
+        type: "adsb_icao",
+        seen: 1.5,
+        rssi: -25.5,
+        messages: 150,
+      };
+
+      const result = mapReadsbToNormalized(aircraft, "uat");
+
+      expect(result.source).toBe("uat");
+    });
+
+    it("uses sourceOverride when type is undefined", () => {
+      const aircraft: ReadsbAircraft = {
+        hex: "a1b2c3",
+        seen: 1.5,
+        rssi: -25.5,
+        messages: 150,
+      };
+
+      const result = mapReadsbToNormalized(aircraft, "uat");
+
+      expect(result.source).toBe("uat");
+    });
+
+    it("falls back to type when sourceOverride is not provided", () => {
+      const aircraft: ReadsbAircraft = {
+        hex: "a1b2c3",
+        type: "tisb_icao",
+        seen: 1.5,
+        rssi: -25.5,
+        messages: 150,
+      };
+
+      const result = mapReadsbToNormalized(aircraft);
+
+      expect(result.source).toBe("tisb_icao");
+    });
+  });
+
   describe("uppercases ICAO hex", () => {
     it("converts lowercase hex to uppercase", () => {
       const aircraft: ReadsbAircraft = {

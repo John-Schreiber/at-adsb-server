@@ -287,6 +287,10 @@ adapter
   .option("--socket <path>", "Daemon Unix socket path (env: SOCKET_PATH)")
   .option("--url <url>", "readsb HTTP base URL (env: READSB_URL)")
   .option("--source-id <id>", "Adapter source identifier (env: SOURCE_ID)")
+  .option(
+    "--source-override <type>",
+    "Force the source tag for every aircraft from this poll target, instead of trusting its own \"type\" field (env: SOURCE_OVERRIDE). Use for single-technology feeds whose JSON doesn't self-report the right type, e.g. dump978/skyaware978 for UAT, which reports adsb_icao/tisb_icao rather than uat.",
+  )
   .option("--beast-host <host>", "BEAST TCP host for raw capture (env: BEAST_HOST)")
   .option("--beast-port <port>", "BEAST TCP port for raw capture (env: BEAST_PORT)", parseInt)
   .option("--batch-window <seconds>", "Raw capture batch window in seconds (env: BATCH_WINDOW_S)", parseInt)
@@ -297,6 +301,7 @@ adapter
       socketPath: opts.socket ?? process.env["SOCKET_PATH"] ?? "/tmp/at-adsb.sock",
       readsbUrl: opts.url ?? process.env["READSB_URL"] ?? "http://localhost:8080",
       sourceId: opts.sourceId ?? process.env["SOURCE_ID"] ?? "readsb-1090",
+      sourceOverride: opts.sourceOverride?.trim() || process.env["SOURCE_OVERRIDE"]?.trim() || undefined,
       pollIntervalS: opts.pollInterval ?? parseInt(process.env["POLL_INTERVAL_S"] ?? "1", 10),
       beastHost: opts.beastHost ?? process.env["BEAST_HOST"] ?? undefined,
       beastPort: opts.beastPort ?? (process.env["BEAST_PORT"] ? parseInt(process.env["BEAST_PORT"], 10) : undefined),
