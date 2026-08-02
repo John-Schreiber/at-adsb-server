@@ -29,7 +29,7 @@ services:
       - "--poll-interval"
       - "${POLL_INTERVAL_S:-5}"
       - "--batch-window"
-      - "${BATCH_WINDOW_S:-60}"
+      - "${BATCH_WINDOW_S:-15}"
       - "--atrx-temp-dir"
       - "/tmp/at-adsb-atrx"
       # Uncomment to enable raw BEAST frame capture:

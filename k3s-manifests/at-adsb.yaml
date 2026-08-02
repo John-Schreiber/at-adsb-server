@@ -51,7 +51,7 @@ spec:
             - name: STREAM_ENDPOINT
               value: "ws://at-adsb-stream:4100/xrpc/at.adsb.broadcast.subscribeEvents"
             - name: BATCH_WINDOW_S
-              value: "60"
+              value: "15"
             - name: STATS_INTERVAL_M
               value: "60"
             - name: QUEUE_DB_PATH

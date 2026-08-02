@@ -31,7 +31,7 @@ export function buildDaemonConfig(params: {
   env: Record<string, string | undefined>;
 }): DaemonConfig {
   const statsIntervalM = parseInt(params.env["STATS_INTERVAL_M"] ?? "60", 10);
-  const batchWindowS = Number(params.env["BATCH_WINDOW_S"] ?? "300");
+  const batchWindowS = Number(params.env["BATCH_WINDOW_S"] ?? "15");
   if (!Number.isFinite(batchWindowS) || batchWindowS < 15 || batchWindowS > 600) {
     throw new Error("BATCH_WINDOW_S must be between 15 and 600");
   }

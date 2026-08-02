@@ -300,7 +300,7 @@ adapter
       pollIntervalS: opts.pollInterval ?? parseInt(process.env["POLL_INTERVAL_S"] ?? "1", 10),
       beastHost: opts.beastHost ?? process.env["BEAST_HOST"] ?? undefined,
       beastPort: opts.beastPort ?? (process.env["BEAST_PORT"] ? parseInt(process.env["BEAST_PORT"], 10) : undefined),
-      batchWindowS: opts.batchWindow ?? parseInt(process.env["BATCH_WINDOW_S"] ?? "60", 10),
+      batchWindowS: opts.batchWindow ?? parseInt(process.env["BATCH_WINDOW_S"] ?? "15", 10),
       atrxTempDir: opts.atrxTempDir ?? process.env["ATRX_TEMP_DIR"] ?? "/tmp/at-adsb-atrx",
     };
 

@@ -96,7 +96,7 @@ test_script_is_executable() {
 
 test_successful_setup() {
   make_case successful
-  run_wizard $'https://pds.example.test\noperator.example\nsecret!$\nHome receiver\nhttp://readsb.example.test:8080\ny\n38.8977\n-77.0365' "$CASE_DIR/elsewhere"
+  run_wizard $'https://pds.example.test\noperator.example\nsecret!$\nHome receiver\nhttp://readsb.example.test:8080\n\n\n\ny\n38.8977\n-77.0365' "$CASE_DIR/elsewhere"
   assert_equal "$RUN_STATUS" "0"
   [ -f "$CASE_DIR/.env" ] || fail ".env was not created"
   assert_equal "$(stat_mode "$CASE_DIR/.env")" "600"
@@ -106,7 +106,7 @@ test_successful_setup() {
   assert_file_contains "$CASE_DIR/.env" 'RECEIVER_LON="-77.0365"'
   assert_file_contains "$CASE_DIR/.env" 'READSB_URL="http://readsb.example.test:8080"'
   assert_file_contains "$CASE_DIR/.env" 'WS_PORT="4100"'
-  assert_file_contains "$CASE_DIR/.env" 'BATCH_WINDOW_S="60"'
+  assert_file_contains "$CASE_DIR/.env" 'BATCH_WINDOW_S="15"'
   assert_file_contains "$CASE_DIR/.env" 'STATS_INTERVAL_M="60"'
   assert_file_contains "$CASE_DIR/.env" 'QUEUE_DB_PATH="/data/at-adsb-queue.db"'
   assert_file_contains "$CASE_DIR/.env" 'POLL_INTERVAL_S="5"'
@@ -122,13 +122,22 @@ test_successful_setup() {
   assert_no_temp_env
 }
 
+test_custom_tuning_values() {
+  make_case custom-tuning
+  run_wizard $'https://pds.example\nhandle\npassword\nName\nhttp://readsb\n30\n10\n30\ny\n1\n2' "$CASE_DIR"
+  assert_equal "$RUN_STATUS" "0"
+  assert_file_contains "$CASE_DIR/.env" 'BATCH_WINDOW_S="30"'
+  assert_file_contains "$CASE_DIR/.env" 'POLL_INTERVAL_S="10"'
+  assert_file_contains "$CASE_DIR/.env" 'STATS_INTERVAL_M="30"'
+}
+
 test_defaults_applied() {
   make_case defaults
-  run_wizard $'\ndefault.example\npassword\nDefault station\n\ny\n1\n2' "$CASE_DIR"
+  run_wizard $'\ndefault.example\npassword\nDefault station\n\n\n\n\ny\n1\n2' "$CASE_DIR"
   assert_equal "$RUN_STATUS" "0"
   assert_file_contains "$CASE_DIR/.env" 'ATP_SERVICE="https://bsky.social"'
   assert_file_contains "$CASE_DIR/.env" 'READSB_URL="http://host.docker.internal:8080"'
-  assert_file_contains "$CASE_DIR/.env" 'BATCH_WINDOW_S="60"'
+  assert_file_contains "$CASE_DIR/.env" 'BATCH_WINDOW_S="15"'
   assert_file_contains "$CASE_DIR/.env" 'STATS_INTERVAL_M="60"'
   assert_file_contains "$CASE_DIR/.env" 'QUEUE_DB_PATH="/data/at-adsb-queue.db"'
   assert_file_contains "$CASE_DIR/.env" 'POLL_INTERVAL_S="5"'
@@ -136,50 +145,50 @@ test_defaults_applied() {
 
 test_required_inputs_rejected() {
   make_case empty-service
-  run_wizard $'\nhandle\npassword\nName\nhttp://readsb\ny\n1\n2' "$CASE_DIR"
+  run_wizard $'\nhandle\npassword\nName\nhttp://readsb\n\n\n\ny\n1\n2' "$CASE_DIR"
   assert_equal "$RUN_STATUS" "0"
   [ -f "$CASE_DIR/.env" ] || fail '.env was not created with the PDS default'
 
   make_case whitespace-handle
-  run_wizard $'https://pds.example\n   \npassword\nName\nhttp://readsb\ny\n1\n2' "$CASE_DIR"
+  run_wizard $'https://pds.example\n   \npassword\nName\nhttp://readsb\n\n\n\ny\n1\n2' "$CASE_DIR"
   [ "$RUN_STATUS" -ne 0 ] || fail 'whitespace handle accepted'
   [ ! -e "$CASE_DIR/.env" ] || fail '.env created after whitespace handle'
   assert_no_temp_env
 
   make_case empty-handle
-  run_wizard $'https://pds.example\n\npassword\nName\ny\n1\n2' "$CASE_DIR"
+  run_wizard $'https://pds.example\n\npassword\nName\n\n\n\ny\n1\n2' "$CASE_DIR"
   [ "$RUN_STATUS" -ne 0 ] || fail 'empty handle accepted'
   [ ! -e "$CASE_DIR/.env" ] || fail '.env created after empty handle'
 
   make_case whitespace-handle
-  run_wizard $'https://pds.example\n   \npassword\nName\ny\n1\n2' "$CASE_DIR"
+  run_wizard $'https://pds.example\n   \npassword\nName\n\n\n\ny\n1\n2' "$CASE_DIR"
   [ "$RUN_STATUS" -ne 0 ] || fail 'whitespace handle accepted'
   [ ! -e "$CASE_DIR/.env" ] || fail '.env created after whitespace handle'
 
   make_case empty-password
-  run_wizard $'https://pds.example\nhandle\n\nName\ny\n1\n2' "$CASE_DIR"
+  run_wizard $'https://pds.example\nhandle\n\nName\n\n\n\ny\n1\n2' "$CASE_DIR"
   [ "$RUN_STATUS" -ne 0 ] || fail 'empty password accepted'
   [ ! -e "$CASE_DIR/.env" ] || fail '.env created after empty password'
 
   make_case whitespace-password
-  run_wizard $'https://pds.example\nhandle\n   \nName\ny\n1\n2' "$CASE_DIR"
+  run_wizard $'https://pds.example\nhandle\n   \nName\n\n\n\ny\n1\n2' "$CASE_DIR"
   [ "$RUN_STATUS" -ne 0 ] || fail 'whitespace password accepted'
   [ ! -e "$CASE_DIR/.env" ] || fail '.env created after whitespace password'
 
   make_case empty-name
-  run_wizard $'https://pds.example\nhandle\npassword\n\ny\n1\n2' "$CASE_DIR"
+  run_wizard $'https://pds.example\nhandle\npassword\n\n\n\n\ny\n1\n2' "$CASE_DIR"
   [ "$RUN_STATUS" -ne 0 ] || fail 'empty station name accepted'
   [ ! -e "$CASE_DIR/.env" ] || fail '.env created after empty station name'
 
   make_case whitespace-readsb
-  run_wizard $'https://pds.example\nhandle\npassword\nName\n   \ny\n1\n2' "$CASE_DIR"
+  run_wizard $'https://pds.example\nhandle\npassword\nName\n   \n\n\n\ny\n1\n2' "$CASE_DIR"
   [ "$RUN_STATUS" -ne 0 ] || fail 'whitespace-only readsb URL accepted'
   [ ! -e "$CASE_DIR/.env" ] || fail '.env created after whitespace-only readsb URL'
 }
 
 test_coordinate_warning_requires_consent() {
   make_case declined
-  run_wizard $'https://pds.example\nhandle\npassword\nName\nhttp://readsb\nn' "$CASE_DIR"
+  run_wizard $'https://pds.example\nhandle\npassword\nName\nhttp://readsb\n\n\n\nn' "$CASE_DIR"
   [ "$RUN_STATUS" -ne 0 ] || fail 'declining coordinate consent succeeded'
   assert_file_contains "$CASE_DIR/output" 'public'
   assert_file_contains "$CASE_DIR/output" 'rounded'
@@ -196,6 +205,9 @@ handle
 password
 Name
 http://readsb
+
+
+
 y
 $value
 2" "$CASE_DIR"
@@ -206,7 +218,7 @@ $value
   done
 
   make_case bad-lon
-  run_wizard $'https://pds.example\nhandle\npassword\nName\nhttp://readsb\ny\n1\n181' "$CASE_DIR"
+  run_wizard $'https://pds.example\nhandle\npassword\nName\nhttp://readsb\n\n\n\ny\n1\n181' "$CASE_DIR"
   [ "$RUN_STATUS" -ne 0 ] || fail 'invalid longitude accepted'
   [ ! -e "$CASE_DIR/.env" ] || fail 'dotenv created for invalid longitude'
 }
@@ -225,7 +237,7 @@ test_registration_coordinates_are_authoritative() {
   make_case coordinates
   printf '%s\n' 'RECEIVER_LAT="99"' 'RECEIVER_LON="99"' >"$CASE_DIR/.env"
   chmod 600 "$CASE_DIR/.env"
-  run_wizard $'y\nhttps://pds.example\nhandle\npassword\nName\nhttp://readsb\ny\n12.34\n56.78' "$CASE_DIR"
+  run_wizard $'y\nhttps://pds.example\nhandle\npassword\nName\nhttp://readsb\n\n\n\ny\n12.34\n56.78' "$CASE_DIR"
   assert_equal "$RUN_STATUS" "0"
   args=$(args_text)
   printf '%s\n' "$args" | grep -Fx -- '12.34' >/dev/null || fail 'prompted latitude not passed'
@@ -242,7 +254,7 @@ test_punctuation_round_trip() {
   handle=' operator #1 '
   password='p@ss"\\$'
   readsb=' http://readsb.example/#tag?x="$value" '
-  input=$(printf '%s\n' "$service" "$handle" "$password" "$name" "$readsb" y 12.3 -45.6)
+  input=$(printf '%s\n' "$service" "$handle" "$password" "$name" "$readsb" "" "" "" y 12.3 -45.6)
   run_wizard "$input" "$CASE_DIR"
   assert_equal "$RUN_STATUS" "0"
   assert_equal "$(parse_dotenv_value ATP_SERVICE)" "$service"
@@ -263,6 +275,9 @@ handle
 $secret
 Failure station
 http://readsb
+
+
+
 y
 1
 2" "$CASE_DIR"
@@ -336,17 +351,20 @@ test_newline_inputs_rejected() {
   # A pipe cannot carry an embedded newline as one read value, so exercise the
   # shell's CR/LF guard through each collected value using a carriage return.
   local field
-  for field in service handle password name readsb consent latitude longitude; do
+  for field in service handle password name readsb batch_window poll_interval stats_interval consent latitude longitude; do
     make_case "newline-$field"
     case "$field" in
-      service) input=$'https://pds.example\r\nhandle\npassword\nName\nhttp://readsb\ny\n1\n2' ;;
-      handle) input=$'https://pds.example\nhandle\r\npassword\nName\nhttp://readsb\ny\n1\n2' ;;
-      password) input=$'https://pds.example\nhandle\npassword\r\nName\nhttp://readsb\ny\n1\n2' ;;
-      name) input=$'https://pds.example\nhandle\npassword\nName\r\nhttp://readsb\ny\n1\n2' ;;
-      readsb) input=$'https://pds.example\nhandle\npassword\nName\nhttp://readsb\r\ny\n1\n2' ;;
-      consent) input=$'https://pds.example\nhandle\npassword\nName\nhttp://readsb\ny\r\n1\n2' ;;
-      latitude) input=$'https://pds.example\nhandle\npassword\nName\nhttp://readsb\ny\n1\r\n2' ;;
-      longitude) input=$'https://pds.example\nhandle\npassword\nName\nhttp://readsb\ny\n1\n2\r\n' ;;
+      service) input=$'https://pds.example\r\nhandle\npassword\nName\nhttp://readsb\n\n\n\ny\n1\n2' ;;
+      handle) input=$'https://pds.example\nhandle\r\npassword\nName\nhttp://readsb\n\n\n\ny\n1\n2' ;;
+      password) input=$'https://pds.example\nhandle\npassword\r\nName\nhttp://readsb\n\n\n\ny\n1\n2' ;;
+      name) input=$'https://pds.example\nhandle\npassword\nName\r\nhttp://readsb\n\n\n\ny\n1\n2' ;;
+      readsb) input=$'https://pds.example\nhandle\npassword\nName\nhttp://readsb\r\n\n\n\ny\n1\n2' ;;
+      batch_window) input=$'https://pds.example\nhandle\npassword\nName\nhttp://readsb\n15\r\n5\n60\ny\n1\n2' ;;
+      poll_interval) input=$'https://pds.example\nhandle\npassword\nName\nhttp://readsb\n15\n5\r\n60\ny\n1\n2' ;;
+      stats_interval) input=$'https://pds.example\nhandle\npassword\nName\nhttp://readsb\n15\n5\n60\r\ny\n1\n2' ;;
+      consent) input=$'https://pds.example\nhandle\npassword\nName\nhttp://readsb\n\n\n\ny\r\n1\n2' ;;
+      latitude) input=$'https://pds.example\nhandle\npassword\nName\nhttp://readsb\n\n\n\ny\n1\r\n2' ;;
+      longitude) input=$'https://pds.example\nhandle\npassword\nName\nhttp://readsb\n\n\n\ny\n1\n2\r\n' ;;
     esac
     run_wizard "$input" "$CASE_DIR"
     [ "$RUN_STATUS" -ne 0 ] || fail "newline input accepted for $field"
@@ -358,6 +376,7 @@ test_newline_inputs_rejected() {
 
 test_script_is_executable
 test_successful_setup
+test_custom_tuning_values
 test_defaults_applied
 test_required_inputs_rejected
 test_coordinate_warning_requires_consent

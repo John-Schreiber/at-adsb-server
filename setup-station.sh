@@ -113,25 +113,108 @@ if [ -e "$ENV_FILE" ]; then
   esac
 fi
 
-read_value "PDS service URL [https://bsky.social]: "
+# ---------------------------------------------------------------------------
+# Section 1: Account & decoder settings (required)
+# ---------------------------------------------------------------------------
+
+printf '%s\n' ""
+printf '%s\n' "=== Account & Decoder ==="
+printf '%s\n' ""
+
+# PDS service URL
+printf '%s\n' "  PDS service URL"
+printf '%s\n' "  The AT Protocol Personal Data Server that hosts your account."
+printf '%s\n' "  Use https://bsky.social if your account is on Bluesky."
+printf '%s\n' "  Use a custom URL only if you self-host your own PDS."
+read_value "  PDS service URL [https://bsky.social]: "
 ATP_SERVICE=${REPLY:-https://bsky.social}
 require_value "$ATP_SERVICE" "PDS service URL"
 
-read_value "AT Protocol handle: "
+printf '%s\n' ""
+
+# AT Protocol handle
+printf '%s\n' "  AT Protocol handle"
+printf '%s\n' "  Your account handle (e.g. yourname.bsky.social)."
+printf '%s\n' "  This identifies the receiver on the network."
+read_value "  AT Protocol handle: "
 ATP_HANDLE=$REPLY
 require_value "$ATP_HANDLE" "AT Protocol handle"
 
-read_secret "AT Protocol app password: "
+printf '%s\n' ""
+
+# AT Protocol app password
+printf '%s\n' "  AT Protocol app password"
+printf '%s\n' "  An app-specific password from your account settings"
+printf '%s\n' "  (NOT your login password). Create one at:"
+printf '%s\n' "    https://bsky.app/settings/app-passwords"
+read_secret "  AT Protocol app password: "
 ATP_PASSWORD=$REPLY
 require_value "$ATP_PASSWORD" "AT Protocol app password"
 
-read_value "Station display name: "
+printf '%s\n' ""
+
+# Station display name
+printf '%s\n' "  Station display name"
+printf '%s\n' "  A human-readable label shown on your public station record."
+printf '%s\n' "  E.g. \"Home receiver\" or \"KSEA rooftop\"."
+read_value "  Station display name: "
 STATION_NAME=$REPLY
 require_value "$STATION_NAME" "station display name"
 
-read_value "readsb URL [http://host.docker.internal:8080]: "
+printf '%s\n' ""
+
+# readsb URL
+printf '%s\n' "  readsb URL"
+printf '%s\n' "  The HTTP endpoint where your readsb instance serves aircraft data."
+printf '%s\n' "  The default points to the Docker host (host.docker.internal:8080)."
+printf '%s\n' "  Adjust the host or port if readsb runs elsewhere on your network."
+read_value "  readsb URL [http://host.docker.internal:8080]: "
 READSB_URL=${REPLY:-http://host.docker.internal:8080}
 require_value "$READSB_URL" "readsb URL"
+
+# ---------------------------------------------------------------------------
+# Section 2: Tuning parameters (optional — press Enter to accept defaults)
+# ---------------------------------------------------------------------------
+
+printf '%s\n' ""
+printf '%s\n' "=== Tuning Parameters ==="
+printf '%s\n' "  These control how often data is collected and published."
+printf '%s\n' "  Press Enter at any prompt to accept the default."
+printf '%s\n' ""
+
+# Batch window
+printf '%s\n' "  Batch window (BATCH_WINDOW_S)"
+printf '%s\n' "  How often (in seconds) the daemon bundles collected aircraft"
+printf '%s\n' "  positions into a sighting record and publishes it to ATP."
+printf '%s\n' "  Smaller values = fresher data but more network writes."
+printf '%s\n' "  Larger values = fewer writes but each record covers a longer span."
+printf '%s\n' "  Allowed range: 15-600 seconds."
+read_value "  Batch window in seconds [15]: "
+BATCH_WINDOW_S=${REPLY:-15}
+reject_line_breaks "$BATCH_WINDOW_S" "batch window"
+
+# Poll interval
+printf '%s\n' ""
+printf '%s\n' "  Poll interval (POLL_INTERVAL_S)"
+printf '%s\n' "  How often (in seconds) the readsb adapter queries your readsb"
+printf '%s\n' "  instance for new aircraft data."
+printf '%s\n' "  Lower values catch fast-moving traffic but use more CPU/network."
+read_value "  Poll interval in seconds [5]: "
+POLL_INTERVAL_S=${REPLY:-5}
+reject_line_breaks "$POLL_INTERVAL_S" "poll interval"
+
+# Stats interval
+printf '%s\n' ""
+printf '%s\n' "  Stats interval (STATS_INTERVAL_M)"
+printf '%s\n' "  How often (in minutes) the daemon publishes performance"
+printf '%s\n' "  statistics (aircraft count, messages decoded, max range, signal quality)."
+read_value "  Stats interval in minutes [60]: "
+STATS_INTERVAL_M=${REPLY:-60}
+reject_line_breaks "$STATS_INTERVAL_M" "stats interval"
+
+# ---------------------------------------------------------------------------
+# Section 3: Station location (required — coordinates are public)
+# ---------------------------------------------------------------------------
 
 printf '%s\n' ""
 printf '%s\n' "================================================================"
@@ -147,13 +230,25 @@ case "$REPLY" in
   *) abort "coordinate consent not given; no .env was written" ;;
 esac
 
-read_value "Station latitude (decimal degrees): "
+printf '%s\n' ""
+printf '%s\n' "  Station latitude"
+printf '%s\n' "  Your receiver's latitude in decimal degrees (WGS-84)."
+printf '%s\n' "  Example: 38.90 for Washington, DC."
+read_value "  Station latitude (decimal degrees): "
 RECEIVER_LAT=$REPLY
 validate_coordinate "$RECEIVER_LAT" "latitude"
 
-read_value "Station longitude (decimal degrees): "
+printf '%s\n' ""
+printf '%s\n' "  Station longitude"
+printf '%s\n' "  Your receiver's longitude in decimal degrees (WGS-84)."
+printf '%s\n' "  Negative for west. Example: -77.04 for Washington, DC."
+read_value "  Station longitude (decimal degrees): "
 RECEIVER_LON=$REPLY
 validate_coordinate "$RECEIVER_LON" "longitude"
+
+# ---------------------------------------------------------------------------
+# Write .env
+# ---------------------------------------------------------------------------
 
 TEMP_ENV_FILE=$(mktemp "$ROOT_DIR/.env.tmp.XXXXXX") || abort "failed to create temporary .env"
 chmod 600 "$TEMP_ENV_FILE"
@@ -165,10 +260,10 @@ write_env_line "RECEIVER_LAT" "$RECEIVER_LAT"
 write_env_line "RECEIVER_LON" "$RECEIVER_LON"
 write_env_line "READSB_URL" "$READSB_URL"
 write_env_line "WS_PORT" "4100"
-write_env_line "BATCH_WINDOW_S" "60"
-write_env_line "STATS_INTERVAL_M" "60"
+write_env_line "BATCH_WINDOW_S" "$BATCH_WINDOW_S"
+write_env_line "STATS_INTERVAL_M" "$STATS_INTERVAL_M"
 write_env_line "QUEUE_DB_PATH" "/data/at-adsb-queue.db"
-write_env_line "POLL_INTERVAL_S" "5"
+write_env_line "POLL_INTERVAL_S" "$POLL_INTERVAL_S"
 
 mv -f -- "$TEMP_ENV_FILE" "$ENV_FILE"
 TEMP_ENV_FILE=
